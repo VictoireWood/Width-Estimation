@@ -9,6 +9,8 @@ from dataloaders.HEDataloader import HEDataModule
 from models import helper, regression
 import numpy as np
 from prettytable import PrettyTable
+# from lightning.pytorch.loggers import CSVLogger
+from pytorch_lightning.loggers import CSVLogger
 
 
 class HEModel(pl.LightningModule):
@@ -78,7 +80,7 @@ class HEModel(pl.LightningModule):
         # get the backbone and the aggregator
         self.backbone = helper.get_backbone(backbone_arch, pretrained, layers_to_freeze, layers_to_crop)
         self.aggregator = helper.get_aggregator(agg_arch, agg_config)
-        self.regressor = regression.Regression(in_dim=self.aggregator.out_dim, regression_ratio=0.8)
+        self.regressor = regression.Regression(in_dim=5120, regression_ratio=0.8)
         
     # the forward pass of the lightning model
     def forward(self, x):
@@ -208,7 +210,7 @@ class HEModel(pl.LightningModule):
 
 if __name__ == '__main__':
     
-    seed.seed_everything(seed=190223, workers=True)
+    seed.isolate_rng(include_cuda=True)
         
     datamodule = HEDataModule(
         batch_size=32,
@@ -246,8 +248,8 @@ if __name__ == '__main__':
 
         agg_arch='MixVPR',
         agg_config={'in_channels' : 1280,
-                'in_h' : 20,
-                'in_w' : 20,
+                'in_h' : 12,
+                'in_w' : 15,
                 'out_channels' : 1280,
                 'mix_depth' : 4,
                 'mlp_ratio' : 1,
@@ -299,14 +301,14 @@ if __name__ == '__main__':
         save_top_k=5,
         mode='max',)
     
-
+    logger = CSVLogger("logs", name="my_exp_name")
 
     #------------------
     # we instanciate a trainer
     trainer = pl.Trainer(
         accelerator='gpu', devices=[0],
         default_root_dir=f'./LOGS/{model.encoder_arch}', # Tensorflow can be used to viz 
-
+        # logger=CSVLogger,
         num_sanity_val_steps=0, # runs a validation step before stating training
         precision=16, # we use half precision to reduce  memory usage
         max_epochs=80,
