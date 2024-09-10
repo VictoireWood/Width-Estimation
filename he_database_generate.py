@@ -48,7 +48,8 @@ if platform.system() == "Windows":
 else:
     slash = '/'
 
-basedir = '/root/shared-storage/shaoxingyu/workspace_backup/QDRaw/'
+# basedir = '/root/shared-storage/shaoxingyu/workspace_backup/QDRaw/'
+basedir = '/root/workspace/QDRaw/'
 
 map_dirs = {
         "2013": rf"{basedir}201310{slash}@map@120.421142578125@36.6064453125@120.48418521881104@36.573829650878906@.jpg",  
@@ -229,9 +230,10 @@ if __name__ == '__main__':
 
     
     # train
-    patches_save_root_dir = f'/root/shared-storage/shaoxingyu/workspace_backup/gsvqddb_{stage}/'
+    # patches_save_root_dir = f'/root/shared-storage/shaoxingyu/workspace_backup/gsvqddb_{stage}/'
+    patches_save_root_dir = f'/root/workspace/gsvqddb_{stage}/'
 
-    times = 10000
+    times = 1000
     
 
     total_iterations = len(map_dirs)  # Total iterations  

@@ -38,6 +38,7 @@ class EfficientNet_V2(nn.Module):
             model_name='efficientnet_v2_m',
             pretrained=True,
             layers_to_freeze=4,
+            layers_to_crop = [],
         ):
         super().__init__()  # NOTE - 调用nn.Module的初始化方法
 
@@ -53,6 +54,8 @@ class EfficientNet_V2(nn.Module):
         self.layers_to_freeze = layers_to_freeze
 
         if pretrained:
+            # for name, child in self.model.features.named_children():
+            #     print(name)
 
             # for name, child in self.model.features.named_children():
             #     if name == "5":
@@ -82,9 +85,23 @@ class EfficientNet_V2(nn.Module):
         self.model.global_pool = None
         self.model.fc = None
 
+        if len(layers_to_crop) > 0:
+            layers_to_crop_num = layers_to_crop[0]
+            self.model = self.model.features[:-layers_to_crop_num]
+        else:
+            # layers_to_crop_num = 0
+            self.model = self.model.features
+        # self.model.to('cuda')
+
+    
+    # @autocast(True)
     def forward(self, x: torch.Tensor):
-        x = self.model.features(x)
+        # x = self.model.features(x)
+        # with torch.autocast('cuda'):
+        #     x = self.model(x)
+        x = self.model(x)
         return x
+        
     
     # def output_shape(self):
     #     torch.randn(1, 3, 360, 480)
@@ -102,10 +119,11 @@ def print_nb_params(m):
     print(f'Trainable parameters: {params/1e6:.3}M')
 
 if __name__ == '__main__':
-    x = torch.randn(4, 3, 360, 480)
+    x = torch.randn(32, 3, 360, 480)
     m = EfficientNet_V2(model_name='efficientnet_v2_m',
                         pretrained=True,
-                        layers_to_freeze=6,
+                        layers_to_freeze=7,
+                        layers_to_crop = [],
                         )
     r = m(x)
     print_nb_params(m)

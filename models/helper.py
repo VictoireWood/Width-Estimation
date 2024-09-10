@@ -26,7 +26,9 @@ import torchvision
 def get_backbone(backbone_arch='resnet50',
                  pretrained=True,
                  layers_to_freeze=2,
-                 layers_to_crop=[],):
+                 layers_to_crop=[],
+                 num_trainable_blocks = 2,
+                 ):
     """Helper function that returns the backbone given its name
 
     Args:
@@ -44,7 +46,7 @@ def get_backbone(backbone_arch='resnet50',
         return backbones.ResNet(backbone_arch, pretrained, layers_to_freeze, layers_to_crop)
     
     elif 'efficientnet_v2' in backbone_arch.lower():
-        return backbones.EfficientNet_V2(backbone_arch, pretrained, layers_to_freeze)
+        return backbones.EfficientNet_V2(backbone_arch, pretrained, layers_to_freeze, layers_to_crop)
 
     elif 'efficient' in backbone_arch.lower():
         if '_b' in backbone_arch.lower():
@@ -58,6 +60,8 @@ def get_backbone(backbone_arch='resnet50',
         return backbones.Swin(model_name='swinv2_base_window12to16_192to256_22kft1k', 
                               pretrained=pretrained, 
                               layers_to_freeze=layers_to_freeze)
+    elif 'dino' in backbone_arch.lower():
+        return backbones.DINOv2(model_name=backbone_arch, num_trainable_blocks=num_trainable_blocks)
     
     
     # if 'dinov2' in backbone_arch.lower():

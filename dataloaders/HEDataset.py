@@ -9,6 +9,8 @@ import torchvision.transforms as T
 from glob import glob
 import numpy as np
 
+size = (360, 480)
+
 
 default_transform = T.Compose([
     T.ToTensor(),
@@ -16,8 +18,10 @@ default_transform = T.Compose([
 ])
 
 # NOTE: Hard coded path to dataset folder 
-BASE_PATH = '/root/shared-storage/shaoxingyu/workspace_backup/gsvqddb_train/'
-real_BASE_PATH = '/root/shared-storage/shaoxingyu/workspace_backup/dcqddb_test/'
+# BASE_PATH = '/root/shared-storage/shaoxingyu/workspace_backup/gsvqddb_train/'
+# real_BASE_PATH = '/root/shared-storage/shaoxingyu/workspace_backup/dcqddb_test/'
+BASE_PATH = '/root/workspace/gsvqddb_train/'
+real_BASE_PATH = '/root/workspace/dcqddb_test/'
 
 
 if not Path(BASE_PATH).exists():
@@ -34,6 +38,7 @@ default_transform = T.Compose([
 ])
 
 basic_transform = T.Compose([
+    T.Resize(size, antialias=True),
     T.ToTensor(),
     T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
 ])
@@ -55,9 +60,10 @@ class HEDataset(Dataset):
         # generate the dataframe contraining images metadata
         self.dataframes = self.__getdataframes()
         self.heights = list(self.dataframes['flight_height'].values)
+        self.heights_tensor = torch.tensor(self.heights, dtype=torch.float16).unsqueeze(1)
         self.year = list(self.dataframes['year'])
         self.flight_height = list(self.dataframes['flight_height'])
-        self.alpha = list(self.dataframes['alpha'])
+        self.alpha = list(self.dataframes['rotation_angle'])
         self.loc_x = list(self.dataframes['loc_x'])
         self.loc_y = list(self.dataframes['loc_y'])
         
@@ -104,10 +110,11 @@ class HEDataset(Dataset):
     
     def __getitem__(self, index):
         
-        height = self.heights[index]
+        # height = self.heights[index]
+        height = self.heights_tensor[index]
         image_name = f'@{self.year[index]}@{self.flight_height[index]:.2f}@{self.alpha[index]:.2f}@{self.loc_x[index]}@{self.loc_y[index]}@.png'
         # f'{year}@{flight_height}@{alpha}@{loc_w}@{loc_h}.png'
-        image_path = self.base_path + 'Images/' + image_name
+        image_path = self.base_path + f'Images/{self.year[index]}/' + image_name
         image = Image.open(image_path).convert('RGB')
         
         if self.transform:
@@ -145,8 +152,9 @@ class realHEDataset(Dataset):
     
     @staticmethod
     def get_heights(image_paths):
-        info_list = [image_path.split('/\\')[-1].split('@') for image_path in image_paths]
-        heights = np.array([info[-4] for info in info_list]).astype(np.float64)
+        info_list = [image_path.split('/')[-1].split('@') for image_path in image_paths]
+        heights = np.array([info[-4] for info in info_list]).astype(np.float16)
+        heights = torch.tensor(heights, dtype=torch.float16).unsqueeze(1)
         return heights
 
 

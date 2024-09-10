@@ -22,6 +22,7 @@ class FeatureMixerLayer(nn.Module):
                     nn.init.zeros_(m.bias)
 
     def forward(self, x):
+        self.mix = self.mix.to(x.device)    # EDIT 邵星雨加
         return x + self.mix(x)
 
 
@@ -75,12 +76,22 @@ def print_nb_params(m):
 
 
 def main():
-    x = torch.randn(1, 1280, 12, 15)
+    # x = torch.randn(32, 1280, 12, 15)
+    x = torch.randn(32, 768, 25, 34)
+    # agg = MixVPR(
+    #     in_channels=1280,
+    #     in_h=12,
+    #     in_w=15,
+    #     out_channels=640,
+    #     mix_depth=4,
+    #     mlp_ratio=1,
+    #     out_rows=4)
+
     agg = MixVPR(
-        in_channels=1280,
-        in_h=12,
-        in_w=15,
-        out_channels=1280,
+        in_channels=768,
+        in_h=25,
+        in_w=34,
+        out_channels=384,
         mix_depth=4,
         mlp_ratio=1,
         out_rows=4)

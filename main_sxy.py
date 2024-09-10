@@ -42,7 +42,7 @@ class HEModel(pl.LightningModule):
                 lr_mult=0.3,
                 
                 #----- Loss
-                loss_name='MultiSimilarityLoss', 
+                loss_name='MSE', 
                 faiss_gpu=False
                  ):
         super().__init__()
@@ -61,6 +61,8 @@ class HEModel(pl.LightningModule):
         self.warmpup_steps = warmpup_steps
         self.milestones = milestones
         self.lr_mult = lr_mult
+
+        self.automatic_optimization = True  # EDIT 这里我把optimizer_step去掉
 
         self.loss_name = loss_name
         # self.miner_name = miner_name
@@ -110,15 +112,18 @@ class HEModel(pl.LightningModule):
         return [optimizer], [scheduler]
     
     # configure the optizer step, takes into account the warmup stage
-    def optimizer_step(self,  epoch, batch_idx,
-                        optimizer, optimizer_idx, optimizer_closure,
-                        on_tpu, using_native_amp, using_lbfgs):
+    # def optimizer_step(self,  epoch, batch_idx,
+    #                     optimizer, optimizer_idx, optimizer_closure,
+    #                     on_tpu, using_native_amp, using_lbfgs):
+    '''def optimizer_step(self,  epoch, batch_idx,
+                       optimizer, optimizer_idx, optimizer_closure=None,
+                       ):
         # warm up lr
         if self.trainer.global_step < self.warmpup_steps:
             lr_scale = min(1., float(self.trainer.global_step + 1) / self.warmpup_steps)
             for pg in optimizer.param_groups:
                 pg['lr'] = lr_scale * self.lr
-        optimizer.step(closure=optimizer_closure)
+        optimizer.step(closure=optimizer_closure)'''
         
     #  The loss function call (this method will be called at each training iteration)
     def loss_function(self, preds, gt):
@@ -145,7 +150,7 @@ class HEModel(pl.LightningModule):
         images, heights = batch
 
         # Feed forward the batch to the model
-        pred_heights = self(images) # Here we are calling the method forward that we defined above
+        pred_heights = self(images) # Here we are calling the method forward that we defined above  # NOTE 这里pred_heights是dtype=torch.float16的tensor
         loss = self.loss_function(pred_heights, heights) # Call the loss_function we defined above
         
         self.log('loss', loss.item(), logger=True)
@@ -170,7 +175,8 @@ class HEModel(pl.LightningModule):
         self.validation_step_outputs.append(heights.detach().cpu())
         loss = self.loss_function(heights, gt)
         self.log('val_loss', loss.item(), logger=True)
-        return loss
+        # return {'loss': loss}
+        return heights.detach().cpu()
     
     def on_validation_epoch_end(self):
         """this return descriptors in their order
@@ -268,7 +274,7 @@ if __name__ == '__main__':
         #----- Loss functions
         # example: ContrastiveLoss, TripletMarginLoss, MultiSimilarityLoss,
         # FastAPLoss, CircleLoss, SupConLoss,
-        loss_name='Huber',
+        loss_name='MSE',
         faiss_gpu=False
     )
     
