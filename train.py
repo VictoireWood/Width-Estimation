@@ -23,6 +23,8 @@ from models import helper, regression
 import commons
 
 from utils.checkpoint import save_checkpoint
+from utils.inference import inference
+
 
 train_batch_size = 32
 num_workers = 16
@@ -70,7 +72,7 @@ agg_config={'in_channels' : 768,
 
 
 regression_in_dim = agg_config['out_rows'] * agg_config['out_channels']
-
+regression_ratio = 0.5
 
 
 
@@ -129,7 +131,7 @@ test_dl = DataLoader(dataset=test_dataset, batch_size=1, shuffle=False, num_work
 
 backbone = helper.get_backbone(backbone_arch=backbone_arch, num_trainable_blocks=2)
 aggregator = helper.get_aggregator(agg_arch=agg_arch, agg_config=agg_config)
-regressor = regression.Regression(in_dim=regression_in_dim, regression_ratio=0.5)
+regressor = regression.Regression(in_dim=regression_in_dim, regression_ratio=regression_ratio)
 
 backbone = backbone.to(device)
 aggregator = aggregator.to(device)
@@ -153,10 +155,10 @@ scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=scheduler_p
 #                  f"from checkpoint {args.resume_train}")
 
 
-best_loss = 100
+best_loss = 1500
 ### Train&Loss
-
-
+best_val_recall_25 = 10
+best_val_recall_50 = 20
 
 # 初始化模型、损失函数和优化器
 criterion = nn.MSELoss()
@@ -209,7 +211,10 @@ for epoch in range(num_epochs):
         _ = tqdm_bar.update()
 
     #### Validation
-    model.eval()
+
+    val_recall_str, valid_recall_percentage = inference(model, test_dl, range_threshold, test_img_num, device)
+    
+    '''model.eval()
 
     count_valid_recall = torch.zeros(len(range_threshold))
     valid_recall_percentage = torch.zeros(len(range_threshold))
@@ -230,9 +235,9 @@ for epoch in range(num_epochs):
             range_threshold_tensor = range_threshold_tensor.to(distances.device)
             valid_heigths[query_i,:] = distances < range_threshold_tensor
         count_valid_recall = torch.count_nonzero(valid_heigths, dim=0)
-        valid_recall_percentage = count_valid_recall / test_img_num
+        valid_recall_percentage = 100 * count_valid_recall / test_img_num
 
-    val_recall_str = ", ".join([f'LR@{N}: {acc:.1f}' for N, acc in zip(range_threshold, valid_recall_percentage)])
+    val_recall_str = ", ".join([f'LR@{N}: {acc:.2f}' for N, acc in zip(range_threshold, valid_recall_percentage)])'''
 
     # train_acc = train_acc.compute() * 100
     train_loss = train_loss.compute()
@@ -242,6 +247,16 @@ for epoch in range(num_epochs):
         best_loss = train_loss
     else:
         is_best = False
+
+    if valid_recall_percentage[0] > best_val_recall_25:
+        is_best_recall_25 = True
+    else:
+        is_best_recall_25 = False
+    
+    if valid_recall_percentage[1] > best_val_recall_50:
+        is_best_recall_50 = True
+    else:
+        is_best_recall_50 = False
 
     logging.info(f"E{epoch: 3d}, " + 
                 #  f"train_acc: {train_acc.item():.1f}, " +
