@@ -22,8 +22,10 @@ from dataloaders.HEDataset import HEDataset, realHEDataset
 from models import helper, regression
 import commons
 
-from utils.checkpoint import save_checkpoint
+from utils.checkpoint import save_checkpoint, resume_model, resume_train_with_params
 from utils.inference import inference
+
+from eval import resume_info
 
 
 train_batch_size = 32
@@ -36,6 +38,7 @@ lr = 0.00001
 seed = 0
 
 resume_train = False
+# resume_model = 
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -153,6 +156,12 @@ scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=scheduler_p
 #     best_loss = best_train_loss
 #     logging.info(f"Resuming from epoch {start_epoch_num} with best train loss {best_train_loss:.2f} " +
 #                  f"from checkpoint {args.resume_train}")
+if resume_info['resume_model']:
+    model = resume_model(model, resume_info)
+
+if resume_info['resume_train']:
+    model, optimizer, scheduler, best_loss = resume_train_with_params(model, optimizer, scheduler, resume_info)
+
 
 
 best_loss = 1500
@@ -274,7 +283,7 @@ for epoch in range(num_epochs):
         # "optimizers_state_dict": [c.state_dict() for c in classifiers_optimizers],
         # "args": args,
         "best_train_loss": best_loss
-    }, is_best, save_dir)
+    }, is_best,is_best_recall_25, is_best_recall_50, save_dir)
 
 
 print("Training complete.")
