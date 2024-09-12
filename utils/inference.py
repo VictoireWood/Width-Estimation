@@ -26,7 +26,7 @@ def inference(model:torch.nn.Module, test_dl:DataLoader, range_threshold, test_i
             range_threshold_tensor = range_threshold_tensor.to(distances.device)
             valid_heigths[query_i,:] = distances < range_threshold_tensor
 
-            tqdm_bar.set_description(f"{query_i:.5d}")
+            tqdm_bar.set_description(f"{query_i:5d}")
             _ = tqdm_bar.refresh()
             _ = tqdm_bar.update()
 

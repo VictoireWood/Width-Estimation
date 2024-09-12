@@ -47,28 +47,28 @@ image_size = (360, 480)
 
 range_threshold = [25, 50, 75, 100, 125, 150]
 
-# backbone_arch = 'efficientnet_v2_m'
-# agg_arch='MixVPR'
-# agg_config={'in_channels' : 1280,
-#             'in_h' : 12,
-#             'in_w' : 15,
-#             'out_channels' : 640,
-#             'mix_depth' : 4,
-#             'mlp_ratio' : 1,
-#             'out_rows' : 4,
-#             }   # the output dim will be (out_rows * out_channels)
-
-
-backbone_arch = 'dinov2_vitb14'
+backbone_arch = 'efficientnet_v2_m'
 agg_arch='MixVPR'
-agg_config={'in_channels' : 768,
-            'in_h' : 25,
-            'in_w' : 34,
-            'out_channels' : 384,
+agg_config={'in_channels' : 1280,
+            'in_h' : 12,
+            'in_w' : 15,
+            'out_channels' : 640,
             'mix_depth' : 4,
             'mlp_ratio' : 1,
             'out_rows' : 4,
             }   # the output dim will be (out_rows * out_channels)
+
+
+# backbone_arch = 'dinov2_vitb14'
+# agg_arch='MixVPR'
+# agg_config={'in_channels' : 768,
+#             'in_h' : 25,
+#             'in_w' : 34,
+#             'out_channels' : 384,
+#             'mix_depth' : 4,
+#             'mlp_ratio' : 1,
+#             'out_rows' : 4,
+#             }   # the output dim will be (out_rows * out_channels)
 
 
 regression_in_dim = agg_config['out_rows'] * agg_config['out_channels']
@@ -105,6 +105,7 @@ logging.info(f"The outputs are being saved in {save_dir}")
 train_dataset = HEDataset(train_dataset_folders, random_sample_from_each_place=True,transform=train_transform)
 train_dl = DataLoader(train_dataset, batch_size=train_batch_size, shuffle=True)
 iterations_num = len(train_dataset) // train_batch_size
+logging.info(f'Found {len(train_dataset)} images in the training set.' )
 
 
 test_dataset_list = []
@@ -124,14 +125,13 @@ test_img_num = len(test_dataset)
 test_dl = DataLoader(dataset=test_dataset, batch_size=1, shuffle=False, num_workers=2, pin_memory=True)
 
 #### model
-# backbone = helper.get_backbone(backbone_arch=backbone_arch, pretrained=True, layers_to_freeze=9, layers_to_crop=[])
-# aggregator = helper.get_aggregator(agg_arch=agg_arch, agg_config=agg_config)
-# # regressor = regression.Regression(in_dim=1024, regression_ratio=0.5)
-# regressor = regression.Regression(in_dim=regression_in_dim, regression_ratio=0.5)
-
-backbone = helper.get_backbone(backbone_arch=backbone_arch, num_trainable_blocks=2)
+backbone = helper.get_backbone(backbone_arch=backbone_arch, pretrained=True, layers_to_freeze=7, layers_to_crop=[])
 aggregator = helper.get_aggregator(agg_arch=agg_arch, agg_config=agg_config)
 regressor = regression.Regression(in_dim=regression_in_dim, regression_ratio=regression_ratio)
+
+# backbone = helper.get_backbone(backbone_arch=backbone_arch, num_trainable_blocks=2)
+# aggregator = helper.get_aggregator(agg_arch=agg_arch, agg_config=agg_config)
+# regressor = regression.Regression(in_dim=regression_in_dim, regression_ratio=regression_ratio)
 
 backbone = backbone.to(device)
 aggregator = aggregator.to(device)

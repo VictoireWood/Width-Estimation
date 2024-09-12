@@ -18,10 +18,10 @@ default_transform = T.Compose([
 ])
 
 # NOTE: Hard coded path to dataset folder 
-# BASE_PATH = '/root/shared-storage/shaoxingyu/workspace_backup/gsvqddb_train/'
-# real_BASE_PATH = '/root/shared-storage/shaoxingyu/workspace_backup/dcqddb_test/'
-BASE_PATH = '/root/workspace/gsvqddb_train/'
-real_BASE_PATH = '/root/workspace/dcqddb_test/'
+BASE_PATH = '/root/shared-storage/shaoxingyu/workspace_backup/gsvqddb_train/'
+real_BASE_PATH = '/root/shared-storage/shaoxingyu/workspace_backup/dcqddb_test/'
+# BASE_PATH = '/root/workspace/gsvqddb_train/'
+# real_BASE_PATH = '/root/workspace/dcqddb_test/'
 
 
 if not Path(BASE_PATH).exists():
