@@ -59,6 +59,11 @@ map_dirs = {
         "2022": rf"{basedir}202202{slash}@map@120.42118549346924@36.60643328438966@120.4841423034668@36.573836401969416@.jpg"
     }
 
+
+def height_to_width(flight_height):
+    map_tile_meters_w = resolution_w / focal_length * flight_height
+    return map_tile_meters_w
+
 def photo_area_meters(flight_height):
     # 默认width更长
     # # 分辨率
