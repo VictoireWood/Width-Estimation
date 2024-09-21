@@ -48,8 +48,8 @@ if platform.system() == "Windows":
 else:
     slash = '/'
 
-# basedir = '/root/shared-storage/shaoxingyu/workspace_backup/QDRaw/'
-basedir = '/root/workspace/QDRaw/'
+basedir = '/root/shared-storage/shaoxingyu/workspace_backup/QDRaw/'
+# basedir = '/root/workspace/QDRaw/'
 
 map_dirs = {
         "2013": rf"{basedir}201310{slash}@map@120.421142578125@36.6064453125@120.48418521881104@36.573829650878906@.jpg",  
@@ -63,6 +63,10 @@ map_dirs = {
 def height_to_width(flight_height):
     map_tile_meters_w = resolution_w / focal_length * flight_height
     return map_tile_meters_w
+
+def width_to_height(map_tile_meters_w):
+    flight_height = focal_length / resolution_w * map_tile_meters_w
+    return flight_height
 
 def photo_area_meters(flight_height):
     # 默认width更长
@@ -156,7 +160,7 @@ def generate_map_tiles(raw_map_path:str, iter_num:int, patches_save_dir:str):
     map_w = map_data.shape[1]   # 大地图像素宽度
     map_h = map_data.shape[0]   # 大地图像素高度
 
-    gnss_data = raw_map_path.split('\\/')[-1]
+    gnss_data = raw_map_path.split(slash)[-1]
 
     year_str = list (map_dirs.keys()) [list(map_dirs.values()).index(raw_map_path)]
     # year = int(year_str)
@@ -173,7 +177,7 @@ def generate_map_tiles(raw_map_path:str, iter_num:int, patches_save_dir:str):
     lon_res = (RB_lon - LT_lon) / map_w
     lat_res = (RB_lat - LT_lat) / map_h
 
-    header = pd.DataFrame(columns=['year', 'origin_img', 'flight_height', 'rotation_angle', 'zone_id', 'zone_num', 'utm_e', 'utm_n', 'loc_x', 'loc_y'])
+    header = pd.DataFrame(columns=['year', 'origin_img', 'photo_width_meters', 'flight_height', 'rotation_angle', 'zone_id', 'zone_num', 'utm_e', 'utm_n', 'loc_x', 'loc_y'])
     csv_dir = patches_save_dir + f'{slash}Dataframes'
     if not os.path.exists(csv_dir):
         os.makedirs(csv_dir)
@@ -206,12 +210,13 @@ def generate_map_tiles(raw_map_path:str, iter_num:int, patches_save_dir:str):
             
             img_seg_pad = crop_rot_img_wo_border(map_data, img_w, img_h, loc_w, loc_h, alpha)
 
-            filename = f'@{year_str}@{flight_height:.2f}@{alpha:.2f}@{loc_w}@{loc_h}@.png'
+            filename = f'@{year_str}@{photo_meters_w:.7f}@{flight_height:.2f}@{alpha:.2f}@{loc_w}@{loc_h}@.png'
             image_save_dir = patches_save_dir + f'{slash}Images{slash}{year_str}'
             if not os.path.exists(image_save_dir):
                 os.makedirs(image_save_dir)
             save_file_path = image_save_dir + f'{slash}{filename}'
             if os.path.exists(save_file_path):
+
                 continue
 
             if img_seg_pad is None:
@@ -221,7 +226,7 @@ def generate_map_tiles(raw_map_path:str, iter_num:int, patches_save_dir:str):
                 img_seg_pad = cv2.resize(img_seg_pad, (target_w, target_h), interpolation = cv2.INTER_LINEAR)
                 
                 cv2.imwrite(save_file_path, img_seg_pad)
-                data_line = pd.DataFrame([[year_str, raw_map_path, flight_height, alpha, utm_zone_id, utm_zone_num, utm_e, utm_n, loc_w, loc_h]], columns=['year', 'origin_img', 'flight_height', 'rotation_angle', 'zone_id', 'zone_num', 'utm_e', 'utm_n', 'loc_x', 'loc_y'])
+                data_line = pd.DataFrame([[year_str, raw_map_path, photo_meters_w, flight_height, alpha, utm_zone_id, utm_zone_num, utm_e, utm_n, loc_w, loc_h]], columns=['year', 'origin_img', 'photo_width_meters', 'flight_height', 'rotation_angle', 'zone_id', 'zone_num', 'utm_e', 'utm_n', 'loc_x', 'loc_y'])
                 data_line.to_csv(csv_dataframe, mode='a', index=False, header=False)
 
             tbar.set_postfix(rate=count/iter_num, tiles=count)
@@ -236,9 +241,9 @@ if __name__ == '__main__':
     
     # train
     # patches_save_root_dir = f'/root/shared-storage/shaoxingyu/workspace_backup/gsvqddb_{stage}/'
-    patches_save_root_dir = f'/root/workspace/gsvqddb_{stage}/'
+    patches_save_root_dir = f'/root/shared-storage/shaoxingyu/heqd_{stage}/'
 
-    times = 1000
+    times = 10000
     
 
     total_iterations = len(map_dirs)  # Total iterations  
