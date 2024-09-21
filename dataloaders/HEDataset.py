@@ -9,6 +9,11 @@ import torchvision.transforms as T
 from glob import glob
 import numpy as np
 
+import sys
+sys.path.append("/root/workspace/Height-Estimation")
+
+from he_database_generate import height_to_width
+
 size = (360, 480)
 
 
@@ -18,8 +23,10 @@ default_transform = T.Compose([
 ])
 
 # NOTE: Hard coded path to dataset folder 
-BASE_PATH = '/root/shared-storage/shaoxingyu/workspace_backup/gsvqddb_train/'
-real_BASE_PATH = '/root/shared-storage/shaoxingyu/workspace_backup/dcqddb_test/'
+BASE_PATH = '/root/shared-storage/shaoxingyu/heqd_train/'
+real_BASE_PATH = '/root/shared-storage/shaoxingyu/heqd_test/'
+# BASE_PATH = '/root/shared-storage/shaoxingyu/workspace_backup/gsvqddb_train/'
+# real_BASE_PATH = '/root/shared-storage/shaoxingyu/workspace_backup/dcqddb_test/'
 # BASE_PATH = '/root/workspace/gsvqddb_train/'
 # real_BASE_PATH = '/root/workspace/dcqddb_test/'
 
@@ -60,9 +67,12 @@ class HEDataset(Dataset):
         # generate the dataframe contraining images metadata
         self.dataframes = self.__getdataframes()
         self.heights = list(self.dataframes['flight_height'].values)
+        self.widths = list(self.dataframes['photo_width_meters'].values)
         self.heights_tensor = torch.tensor(self.heights, dtype=torch.float16).unsqueeze(1)
+        self.photo_width_tensor = torch.tensor(self.widths, dtype=torch.float16).unsqueeze(1)
         self.year = list(self.dataframes['year'])
         self.flight_height = list(self.dataframes['flight_height'])
+        self.widths_meters = list(self.dataframes['photo_width_meters'])
         self.alpha = list(self.dataframes['rotation_angle'])
         self.loc_x = list(self.dataframes['loc_x'])
         self.loc_y = list(self.dataframes['loc_y'])
@@ -110,16 +120,17 @@ class HEDataset(Dataset):
     
     def __getitem__(self, index):
         
-        # height = self.heights[index]
         height = self.heights_tensor[index]
-        image_name = f'@{self.year[index]}@{self.flight_height[index]:.2f}@{self.alpha[index]:.2f}@{self.loc_x[index]}@{self.loc_y[index]}@.png'
+        width = self.photo_width_tensor[index]
+        image_name = f'@{self.year[index]}@{self.widths_meters[index]:.7f}@{self.flight_height[index]:.2f}@{self.alpha[index]:.2f}@{self.loc_x[index]}@{self.loc_y[index]}@.png'
         # f'{year}@{flight_height}@{alpha}@{loc_w}@{loc_h}.png'
         image_path = self.base_path + f'Images/{self.year[index]}/' + image_name
         image = Image.open(image_path).convert('RGB')
         
         if self.transform:
             image = self.transform(image)
-        return image, height
+        # return image, height
+        return image, width
     
     def __len__(self):
         '''Denotes the total number of places (not images)'''
@@ -136,16 +147,19 @@ class realHEDataset(Dataset):
         
         self.images_paths = images_paths
         self.heights = self.get_heights(images_paths)
+        self.photo_width = height_to_width(self.heights)
 
     def __getitem__(self, index):
         
         height = self.heights[index]
+        width = self.photo_width[index]
         image_path = self.images_paths[index]
         image = Image.open(image_path).convert('RGB')
         
         if self.transform:
             image = self.transform(image)
-        return image, height
+        # return image, height
+        return image, width
     
     def __len__(self):
         return len(self.images_paths)
@@ -153,7 +167,8 @@ class realHEDataset(Dataset):
     @staticmethod
     def get_heights(image_paths):
         info_list = [image_path.split('/')[-1].split('@') for image_path in image_paths]
-        heights = np.array([info[-4] for info in info_list]).astype(np.float16)
+        # heights = np.array([info[-4] for info in info_list]).astype(np.float16) # @角度@宽度@高度@utm_e@utm_n@.png
+        heights = np.array([info[2] for info in info_list]).astype(np.float16) # @角度@宽度@高度@utm_e@utm_n@.png   获得宽度
         heights = torch.tensor(heights, dtype=torch.float16).unsqueeze(1)
         return heights
 

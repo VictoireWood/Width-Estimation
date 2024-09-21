@@ -25,8 +25,15 @@ import commons
 from utils.checkpoint import save_checkpoint, resume_model, resume_train_with_params
 from utils.inference import inference
 
-from eval import resume_info
+# from eval import resume_info
 
+resume_info = {
+    'resume_model': True,
+    'resume_model_path': './logs/HE-dinov2_vitb14-MixVPR/2024-09-10_11-29-15/best_model.pth',
+    'resume_train': False,
+    'resume_train_path': './logs/HE-dinov2_vitb14-MixVPR/2024-09-10_11-29-15/last_checkpoint.pth',
+    'device': 'cuda'
+}
 
 train_batch_size = 32
 num_workers = 16
@@ -190,10 +197,13 @@ for epoch in range(num_epochs):
     tqdm_bar = tqdm(range(iterations_num), ncols=100, desc="")
     iteration = 0
     # for iteration in tqdm_bar:
-    for images, heights_gt in train_dl:
+    # for images, heights_gt in train_dl:
+    # for query_i, (images,heights_gt) in enumerate(train_dl):
+    for images, widths_gt in train_dl:
         iteration += 1
         # images, heights_gt = train_dl
-        images, heights_gt = images.to(device), heights_gt.to(device)
+        # images, heights_gt = images.to(device), heights_gt.to(device)
+        images, widths_gt = images.to(device), widths_gt.to(device)
         optimizer.zero_grad()
         # regression_optimizer.zero_grad()
         with torch.autocast(device):
@@ -203,10 +213,10 @@ for epoch in range(num_epochs):
 
             if iteration > 155:
                 pass
-            heights_pred = model(images)
-            loss = criterion(heights_pred, heights_gt)
-            # loss = loss / train_batch_size
-            # loss = sqrt(loss)
+            # heights_pred = model(images)
+            widths_pred = model(images)
+            # loss = criterion(heights_pred, heights_gt)
+            loss = criterion(widths_pred, widths_gt)
             
             
         scaler.scale(loss).backward()
