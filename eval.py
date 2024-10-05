@@ -13,7 +13,7 @@ import torchmetrics
 from tqdm import tqdm
 from math import sqrt
 
-from dataloaders.HEDataset import HEDataset, realHEDataset
+from dataloaders.WEDataset import HEDataset, realHEDataset
 from models import helper, regression
 import commons
 

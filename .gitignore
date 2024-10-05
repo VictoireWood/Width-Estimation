@@ -5,3 +5,4 @@
 LOGS/
 logs
 logs/*
+.ipynb_checkpoints/

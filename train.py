@@ -18,7 +18,7 @@ import torchmetrics
 from tqdm import tqdm
 from math import sqrt
 
-from dataloaders.HEDataset import HEDataset, realHEDataset
+from dataloaders.WEDataset import HEDataset, realHEDataset
 from models import helper, regression
 import commons
 
@@ -28,7 +28,7 @@ from utils.inference import inference
 # from eval import resume_info
 
 resume_info = {
-    'resume_model': True,
+    'resume_model': False,
     'resume_model_path': './logs/HE-dinov2_vitb14-MixVPR/2024-09-10_11-29-15/best_model.pth',
     'resume_train': False,
     'resume_train_path': './logs/HE-dinov2_vitb14-MixVPR/2024-09-10_11-29-15/last_checkpoint.pth',

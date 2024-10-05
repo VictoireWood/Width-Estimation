@@ -59,7 +59,7 @@ def parse_arguments():
 
     # EDIT
     if args.exp_name == "default":
-        args.exp_name = f'udc-{args.backbone}-{args.classifier_type}-{args.N}-{args.M}-h{flight_heights[0]}~{flight_heights[-1]}'
+        args.exp_name = f'WE-{args.backbone}-{args.classifier_type}-{args.N}-{args.M}-h{flight_heights[0]}~{flight_heights[-1]}'
 
 
     args.save_dir = os.path.join("logs", args.exp_name, datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))

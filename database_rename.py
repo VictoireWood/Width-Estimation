@@ -3,7 +3,7 @@ import shutil
 import os
 from decimal import Decimal
 import utm
-from he_database_generate import height_to_width
+from we_database_generate import height_to_width
 
 src_dir = '/root/shared-storage/shaoxingyu/QingDaoUAVPic'
 # dst_dir = '/root/shared-storage/shaoxingyu/workspace_backup/dcqd_test'

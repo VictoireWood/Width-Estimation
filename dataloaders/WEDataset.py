@@ -50,7 +50,7 @@ basic_transform = T.Compose([
     T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
 ])
 
-class HEDataset(Dataset):
+class WEDataset(Dataset):
     def __init__(self,
                  foldernames=['2013', '2017', '2019', '2020', '2022'],
                  random_sample_from_each_place=True,
@@ -138,7 +138,7 @@ class HEDataset(Dataset):
 
 
 
-class realHEDataset(Dataset):
+class realWEDataset(Dataset):
     def __init__(self, base_path=real_BASE_PATH, transform=basic_transform):
         super().__init__()
         self.base_path = base_path

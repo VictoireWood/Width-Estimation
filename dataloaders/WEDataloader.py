@@ -2,7 +2,7 @@ import pytorch_lightning as pl
 from torch.utils.data.dataloader import DataLoader
 from torchvision import transforms as T
 
-from dataloaders.HEDataset import HEDataset, realHEDataset
+from dataloaders.WEDataset import HEDataset, realHEDataset
 
 from prettytable import PrettyTable
 

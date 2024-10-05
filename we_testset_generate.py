@@ -36,7 +36,7 @@ import random
 import pandas as pd
 import utm
 
-from he_database_generate import height_to_width
+from we_database_generate import height_to_width
 
 # TODO: 
 # 分辨率

@@ -5,7 +5,7 @@ from pytorch_lightning.utilities import seed
 from torch.optim import lr_scheduler, optimizer
 import utils
 
-from dataloaders.HEDataloader import HEDataModule
+from dataloaders.WEDataloader import HEDataModule
 from models import helper, regression
 import numpy as np
 from prettytable import PrettyTable
